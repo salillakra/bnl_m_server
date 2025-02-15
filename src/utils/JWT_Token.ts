@@ -1,5 +1,6 @@
 import * as jose from "jose";
 
+
 // This function verifies the provided JWT token and returns the payload if valid.
 export const VerifyToken = async (token: string) => {
   const secret = new TextEncoder().encode(process.env.JWT_SECRET);
@@ -48,3 +49,7 @@ export const getToken = async (data: TokenPayload): Promise<TokenData> => {
 
   return { accessToken, refreshToken };
 };
+
+
+
+
