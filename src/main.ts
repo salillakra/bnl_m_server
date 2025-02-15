@@ -4,6 +4,7 @@ import { getToken, VerifyToken } from "./utils/JWT_Token";
 import { PrismaClient } from "@prisma/client";
 import cors from "cors";
 import dotenv from "dotenv";
+import bcrypt from "bcrypt";
 import { authenticateTokenMiddleware } from "./utils/middleware";
 
 dotenv.config();
@@ -25,16 +26,11 @@ app.post("/login", async (req: Request, res: Response): Promise<void> => {
 
     if (!userId || !password) {
       res.status(400).json({ message: "User ID and password are required" });
-      return;
     }
 
-    await prisma.$connect();
-
     const member = await prisma.memberCredentials.findFirst({
-      where: {
-        userId,
-        password,
-      },
+      where: { userId },
+      select: { id: true, password: true, memberId: true },
     });
 
     if (!member) {
@@ -42,15 +38,20 @@ app.post("/login", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const { memberId } = member;
-    const token = await getToken({ memberId });
+    const [isValid, token] = await Promise.all([
+      bcrypt.compare(password!, member.password),
+      getToken({ memberId: member.memberId }),
+    ]);
 
-    console.log("Updating refresh token...");
+    if (!isValid) {
+      res.status(401).json({ message: "Invalid credentials" });
+      return;
+    }
+
     await prisma.memberCredentials.update({
       where: { id: member.id },
       data: { refreshToken: token.refreshToken },
     });
-    console.log("Refresh token updated");
 
     res.status(200).json({ message: "Success", token });
   } catch (error) {
