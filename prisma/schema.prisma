@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+
+model MemberCredentials {
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  memberId     String  @db.ObjectId
+  userId       String
+  password     String
+  refreshToken String?
+}
+
+
+model CustomerAccount {
+  id                  String   @id @map("_id") @default(auto()) @db.ObjectId
+  memberId            String   @db.ObjectId
+  nomineeId           String   @db.ObjectId
+  schemeType          String
+  schemeId            String   @db.ObjectId
+  branchId            String   @db.ObjectId
+  accountNumber       String   @unique
+  openingDate         DateTime @db.Date
+  maturityAmount      Float?  
+  maturityDate        DateTime? @db.Date
+  balance             Float
+  principalAmount     Float
+  accountHoldingType  String
+  interestAccumulated Float
+  installmentCount    Int?
+  cycleStartDate      DateTime? @db.Date
+  cycleEndDate        DateTime? @db.Date
+  active             Boolean
+}
